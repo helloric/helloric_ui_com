@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+# based on https://github.com/ros2/launch_ros/blob/master/
+# launch_testing_ros/test/examples/check_msgs_launch_test.py
+
+# ROS 2 basics
+from rclpy.task import Future
+import rclpy
+
+# ROS 2 launchfile
+import launch
+import launch.actions
+import launch_ros.actions
+import launch_testing.actions
+
+# unit testing and pytest
+import pytest
+from threading import Event
+from threading import Thread
+import unittest
+
+# launch_testing
+from launch_testing.io_handler import ActiveIoHandler
+import launch_testing.markers
+
+# TODO: Websocket testing
+
+
+
+@pytest.mark.launch_test
+@launch_testing.markers.keep_alive
+def start_basics():
+    return launch.LaunchDescription([
+        launch_ros.actions.Node(
+            package='helloric_ui_com_test',
+            executable='emotion_publisher',
+            name='emotion_publisher',
+            parameters=[]
+        ),
+        launch_testing.actions.ReadyToTest()
+    ])
+
+
+class TestFixture(unittest.TestCase):
+    def spin(self):
+        try:
+            while rclpy.ok() and not self.spinning.is_set():
+                rclpy.spin_once(self.node, timeout_sec=0.1)
+        finally:
+            return
+
+    def setUp(self):
+        rclpy.init()
+        self.node = rclpy.create_node('test_node')
+        self.clients = []
+        # TODO: add events for received websocket data
+
+        self.spinning = Event()
+        # Add a spin thread
+        self.ros_spin_thread = Thread(target=self.spin)
+        self.ros_spin_thread.start()
+
+    def wait_for_service(self, service_clz, service_name):
+        """Helper function to wait for a service to become available."""
+        client = self.node.create_client(service_clz, service_name)
+        service_available = False
+        for _try in range(10):
+            if client.wait_for_service(timeout_sec=.5):
+                service_available = True
+                self.node.get_logger().info(
+                    f'service {service_name} is available 👍!')
+                break
+            self.node.get_logger().info(
+                f'service not available {service_name}, waiting again...')
+        if not service_available:
+            raise RuntimeError(f'Service "{service_name}" not available ☠!')
+        return client
+
+    def tearDown(self):
+        self.spinning.set()
+        self.ros_spin_thread.join()
+        for cli in self.clients:
+            self.node.destroy_client(cli)
+        self.node.destroy_node()
+        rclpy.shutdown()
+
+    def test_websocket_called(self, proc_output: ActiveIoHandler):
+        """the only test: make sure that the websocket has been executed."""
+        # TODO: check if we received 3 or 5 from the websocket
+        # (and also that we are speaking?)
+        assert True

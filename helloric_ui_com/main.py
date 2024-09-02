@@ -46,7 +46,7 @@ class HelloRICMgr(WebSocketConnectionManager):
         super().__init__()
 
     async def main_loop(self):
-        while True:
+        while rclpy.ok():
             if self.ros_node:
                 rclpy.spin_once(self.ros_node, timeout_sec=0.1)
             # TODO: forward data to Client if its new
