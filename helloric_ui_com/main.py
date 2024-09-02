@@ -58,6 +58,13 @@ class HelloRICMgr(WebSocketConnectionManager):
                 self.last_speaking = self.speaking
             await asyncio.sleep(0.01)
 
+    async def new_client(self, user_id):
+        """a new user connected - send initial data."""
+        await self.send_json(user_id, {
+            'emotion': self.emotion,
+            'speaking': self.speaking
+        })
+
 
 def init_websocket():
     app = FastAPI()
@@ -70,9 +77,8 @@ def init_websocket():
         await websocket.accept()
         user_id = mgr.add(websocket)
         try:
-            # TODO: broadcast state
-            await mgr.send_json(user_id, {'emotion': mgr.emotion})
-            await mgr.send_json(user_id, {'speaking': mgr.speaking})
+            # broadcast states from the 
+            await mgr.new_client(user_id)
             while True:
                 data = await websocket.receive_json()
                 # Future: data from the UI
