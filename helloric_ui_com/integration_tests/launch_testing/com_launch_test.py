@@ -28,7 +28,7 @@ import launch_testing.markers
 
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
-def start_basics():
+def generate_test_description():
     return launch.LaunchDescription([
         launch_ros.actions.Node(
             package='helloric_ui_com_test',
