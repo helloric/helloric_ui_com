@@ -28,7 +28,7 @@ class HelloRICUI(Node):
         self.get_logger().info(f'New emotion: {msg.data}')
         self.mgr.emotion = msg.data
 
-def main(mgr, args = None):
+def init_node(mgr, args = None):
     rclpy.init(args=args)
     node = HelloRICUI(mgr)
     return node
