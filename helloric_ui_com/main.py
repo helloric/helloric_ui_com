@@ -2,8 +2,11 @@ import rclpy
 import uuid
 import asyncio
 from fastapi import FastAPI, WebSocket
-from ros_com import init_node
+from .ros_com import init_node
 from uvicorn import Config, Server
+
+
+DEFAULT_EMOTION = 0
 
 
 class WebSocketConnectionManager:
@@ -38,10 +41,18 @@ class WebSocketConnectionManager:
 
 class HelloRICMgr(WebSocketConnectionManager):
     def __init__(self):
-        self.emotion = -1
-        self.last_emotion = -1
+        # TODO: create a generic "message forwarding"
+        #       that gets data from any ros topic service and 
+        #       forwards it to the websocket, ideally with
+        #       user management.
+        #       but also receives data from the websocket and
+        #       forwards it to ROS
+        self.emotion = DEFAULT_EMOTION
+        self.last_emotion = self.emotion
+
         self.speaking = False
-        self.last_speaking = False
+        self.last_speaking = self.speaking
+
         self.ros_node = None
         super().__init__()
 

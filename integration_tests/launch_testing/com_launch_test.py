@@ -25,6 +25,8 @@ import launch_testing.markers
 # see https://fastapi.tiangolo.com/advanced/testing-websockets/
 from fastapi.testclient import TestClient
 
+from helloric_ui_com.main import init_websocket
+
 
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
@@ -52,7 +54,10 @@ class TestFixture(unittest.TestCase):
         rclpy.init()
         self.node = rclpy.create_node('test_node')
         self.clients = []
-        # TODO: add events for received websocket data
+
+        # we received three and five from the server
+        self.received_three = Event()
+        self.received_five = Event()
 
         self.spinning = Event()
         # Add a spin thread
@@ -85,6 +90,11 @@ class TestFixture(unittest.TestCase):
 
     def test_websocket_called(self, proc_output: ActiveIoHandler):
         """the only test: make sure that the websocket has been executed."""
-        # TODO: check if we received 3 or 5 from the websocket
+        # check if we received 3 or 5 from the websocket
+        app = init_websocket()
+        client = TestClient(app)
+        with client.websocket_connect("/ws") as websocket:
+            data = websocket.receive_json()
+            assert data == {"msg": "Hello WebSocket"}
         # (and also that we are speaking?)
         assert True
