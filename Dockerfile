@@ -26,12 +26,5 @@ WORKDIR ${COLCON_WS}
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build
 
 WORKDIR ${APP}
-# TODO: copy/build helloric_ui_com_test!
-
-#COPY ./run_tests.bash /run_tests.bash
-#RUN chmod +x /run_tests.bash
-
-# comment this out if you want to run the tests as default instead!
-# CMD [ "bash", "-c", "/run_tests.bash"]
 
 CMD ["helloric_ui_com"]
