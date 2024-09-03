@@ -3,3 +3,4 @@ uvicorn[standard]
 # for testing
 websocket-client
 httpx
+aiounittest

@@ -4,6 +4,7 @@ import asyncio
 from fastapi import FastAPI, WebSocket
 from .ros_com import init_node
 from uvicorn import Config, Server
+from starlette.websockets import WebSocketDisconnect
 
 
 DEFAULT_EMOTION = 0
@@ -14,7 +15,7 @@ class WebSocketConnectionManager:
         self.active_connections: list[WebSocket] = []
         # connections with names
         self.named_connections: dict = {}
-    
+
     def add(self, websocket: WebSocket, name: str = None):
         if not name:
             name = str(uuid.uuid4())
@@ -60,14 +61,17 @@ class HelloRICMgr(WebSocketConnectionManager):
         while rclpy.ok():
             if self.ros_node:
                 rclpy.spin_once(self.ros_node, timeout_sec=0.1)
-            # TODO: forward data to Client if its new
-            if self.emotion != self.last_emotion:
-                await self.broadcast_json({'emotion': self.emotion})
-                self.last_emotion = self.emotion
-            if self.speaking != self.last_speaking:
-                await self.broadcast_json({'speaking': self.speaking})
-                self.last_speaking = self.speaking
+            # forward data to Client if its new
+            await self.update_data()
             await asyncio.sleep(0.01)
+
+    async def update_data(self):
+        if self.emotion != self.last_emotion:
+            await self.broadcast_json({'emotion': self.emotion})
+            self.last_emotion = self.emotion
+        if self.speaking != self.last_speaking:
+            await self.broadcast_json({'speaking': self.speaking})
+            self.last_speaking = self.speaking
 
     async def new_client(self, user_id):
         """a new user connected - send initial data."""
@@ -93,8 +97,8 @@ def init_websocket():
             while True:
                 data = await websocket.receive_json()
                 # Future: data from the UI
-        except Exception as e:
-            print('Error: %s', e)
+        except WebSocketDisconnect as wsd:
+            print('Websocket disconnected - Error:', wsd)
         finally:
             mgr.disconnect(user_id)
     return mgr, app
