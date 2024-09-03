@@ -30,7 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'emotion_publisher ='
-            ' helloric_ui_test.emotion_publisher:main',
+            ' helloric_ui_com_test.emotion_publisher:main',
         ],
     },
 )

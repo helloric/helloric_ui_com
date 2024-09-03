@@ -23,12 +23,12 @@ class MinimalPublisher(Node):
         self._num = 3 if self._num == 5 else 5
         msg.data = self._num
         self.publisher_emo.publish(msg)
-        self.get_logger().info('Publish emotion: "%s"' % msg.data)
+        self.get_logger().info(f'Publish emotion: "{msg.data}"')
 
         msg = Bool()
         msg.data = self._num == 5
         self.publisher_speak.publish(msg)
-        self.get_logger().info('Publish speaking: "%s"' % msg.data)
+        self.get_logger().info(f'Publish speaking: "{msg.data}"')
 
 
 def main(args=None):
@@ -36,13 +36,18 @@ def main(args=None):
 
     minimal_publisher = MinimalPublisher()
 
-    rclpy.spin(minimal_publisher)
+    try:
+        rclpy.spin(minimal_publisher)
+    except KeyboardInterrupt:
+        # we ignore keyboard interrupts as they are send by our
+        # testing framework on purpose to shutdown after the test
+        # so we don't get tracebacks/unwanted error messages
+        pass
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
     minimal_publisher.destroy_node()
-    rclpy.shutdown()
 
 
 if __name__ == '__main__':

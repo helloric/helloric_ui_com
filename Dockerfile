@@ -10,6 +10,11 @@ RUN pip3 install -r /tmp/requirements.txt
 
 COPY ./helloric_ui_com /app/helloric_ui_com
 
+RUN mkdir -p ~/colcon_ws/src && \
+    ln -s /app/helloric_ui_com/integration_tests/helloric_ui_com_test ~/colcon_ws/src/helloric_ui_com_test
+
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && cd ~/colcon_ws && colcon build
+
 WORKDIR /app/helloric_ui_com
 
 # TODO: copy/build helloric_ui_com_test!
