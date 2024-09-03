@@ -18,6 +18,7 @@ helloric_ui_com test:
   stage: test
   script:
     - pip3 install -r requirements.txt
+    - pip3 install .
     # build temporary colcon workspace
     - mkdir -p ~/colcon_ws/src
     - ln -s /builds/helloric/helloric_ui_com/integration_tests/helloric_ui_com_test ~/colcon_ws/src/helloric_ui_com_test
