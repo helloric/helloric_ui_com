@@ -51,10 +51,10 @@ class TestFixture(unittest.TestCase):
             return
 
     def setUp(self):
-        rclpy.init()
-        self.node = rclpy.create_node('test_node')
         self.clients = []
-
+        mgr, app = init_websocket()
+        self.app = app
+        self.node = mgr.ros_node
         # we received three and five from the server
         self.received_three = Event()
         self.received_five = Event()
@@ -91,8 +91,7 @@ class TestFixture(unittest.TestCase):
     def test_websocket_called(self, proc_output: ActiveIoHandler):
         """the only test: make sure that the websocket has been executed."""
         # check if we received 3 or 5 from the websocket
-        app = init_websocket()
-        client = TestClient(app)
+        client = TestClient(self.app)
         with client.websocket_connect("/ws") as websocket:
             data = websocket.receive_json()
             assert data == {"msg": "Hello WebSocket"}
