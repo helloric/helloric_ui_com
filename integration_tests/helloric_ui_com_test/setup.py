@@ -1,6 +1,8 @@
 from setuptools import setup
 
+
 package_name = 'helloric_ui_com_test'
+
 
 setup(
     name=package_name,

@@ -19,16 +19,22 @@ class MinimalPublisher(Node):
 
     def timer_callback(self):
         """send emotion 3 and 5 alternating."""
-        msg = Int8()
-        self._num = 3 if self._num == 5 else 5
-        msg.data = self._num
-        self.publisher_emo.publish(msg)
-        self.get_logger().info(f'Publish emotion: "{msg.data}"')
+        try:
+            msg = Int8()
+            self._num = 3 if self._num == 5 else 5
+            msg.data = self._num
+            self.publisher_emo.publish(msg)
+            self.get_logger().info(f'Publish emotion: "{msg.data}"')
 
-        msg = Bool()
-        msg.data = self._num == 5
-        self.publisher_speak.publish(msg)
-        self.get_logger().info(f'Publish speaking: "{msg.data}"')
+            msg = Bool()
+            msg.data = self._num == 5
+            self.publisher_speak.publish(msg)
+            self.get_logger().info(f'Publish speaking: "{msg.data}"')
+        except KeyboardInterrupt:
+            # we ignore keyboard interrupts as they are send by our
+            # testing framework on purpose to shutdown after the test
+            # so we don't get tracebacks/unwanted error messages
+            pass
 
 
 def main(args=None):

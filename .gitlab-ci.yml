@@ -12,6 +12,7 @@ helloric_ui_com build:
   stage: build
   script:
     - pip3 install -r requirements.txt
+    - pip3 install .
 
 helloric_ui_com test:
   stage: test
@@ -19,10 +20,10 @@ helloric_ui_com test:
     - pip3 install -r requirements.txt
     # build temporary colcon workspace
     - mkdir -p ~/colcon_ws/src
-    - ln -s /builds/helloric/helloric_ui_com/helloric_ui_com/integration_tests/helloric_ui_com_test ~/colcon_ws/src/helloric_ui_com_test
+    - ln -s /builds/helloric/helloric_ui_com/integration_tests/helloric_ui_com_test ~/colcon_ws/src/helloric_ui_com_test
     - . /opt/ros/humble/setup.sh && cd ~/colcon_ws && colcon build
     # Integration tests
-    - . ~/colcon_ws/install/setup.sh && launch_test /builds/helloric/helloric_ui_com/helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
+    - . ~/colcon_ws/install/setup.sh && launch_test /builds/helloric/helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
   artifacts:
     paths:
       - build/

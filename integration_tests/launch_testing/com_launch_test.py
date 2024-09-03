@@ -22,8 +22,8 @@ import unittest
 from launch_testing.io_handler import ActiveIoHandler
 import launch_testing.markers
 
-# TODO: Websocket testing
-
+# see https://fastapi.tiangolo.com/advanced/testing-websockets/
+from fastapi.testclient import TestClient
 
 
 @pytest.mark.launch_test
