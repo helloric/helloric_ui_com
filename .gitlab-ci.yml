@@ -22,7 +22,7 @@ helloric_ui_com test:
     - ln -s ./helloric_ui_com/integration_tests/helloric_ui_com_test ~/colcon_ws/src/helloric_ui_com_test
     - . /opt/ros/humble/setup.sh && cd ~/colcon_ws && colcon build
     # Integration tests
-    - . ~/colcon_ws/install/setup.sh && launch_test helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
+    - . ~/colcon_ws/install/setup.sh && launch_test ./helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
   artifacts:
     paths:
       - build/
