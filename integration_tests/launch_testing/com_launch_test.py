@@ -70,7 +70,7 @@ class TestFixture(unittest.TestCase):
         # start server
         self.websocket_response = Event()
         self.helloric_ui_com = subprocess.Popen(
-            ['helloric_ui_com', '--host', 'localhost'])
+            ['helloric_ui_com', '--host', 'localhost', '--port', '8260'])
 
     def tearDown(self):
         if self.helloric_ui_com:
@@ -90,7 +90,7 @@ class TestFixture(unittest.TestCase):
         # TODO: this should be a ROS node that send a message and receives
         # the emotion from the given websocket
         
-        uri = "ws://localhost:7000/ws"
+        uri = "ws://localhost:8260/ws"
         print(f'connecting to {uri}')
         self.ws = websocket.WebSocket()
         connected = False
