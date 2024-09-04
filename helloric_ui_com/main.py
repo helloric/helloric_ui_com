@@ -104,9 +104,9 @@ def init_websocket():
     return mgr, app
 
 
-def init_fastapi(logger, loop):
+def init_fastapi(logger, loop, host='0.0.0.0', port=7000):
     logger.info('⚡ Provide WebSocket interface using fastapi')
     mgr, app = init_websocket()
-    config = Config(app=app, loop=loop, host='0.0.0.0', port=7000)
+    config = Config(app=app, loop=loop, host=host, port=port)
     server = Server(config)
     return mgr, server, app
