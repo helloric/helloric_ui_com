@@ -5,12 +5,16 @@
 # Python basics to launch helloric_ui_com
 import subprocess
 
+from threading import Event
+from threading import Thread
+
 # Websocket-client library to test connection
 import json
 import websocket
 
 # ROS 2 basics
 import rclpy
+from std_msgs.msg import Bool, Int8
 
 # ROS 2 launchfile
 import launch
@@ -20,7 +24,6 @@ import launch_testing.actions
 
 # unit testing and pytest
 import pytest
-from threading import Event
 import unittest
 
 # launch_testing
@@ -31,21 +34,39 @@ import launch_testing.markers
 @launch_testing.markers.keep_alive
 def generate_test_description():
     return launch.LaunchDescription([
-        launch_ros.actions.Node(
-            package='helloric_ui_com_test',
-            executable='emotion_publisher',
-            name='emotion_publisher',
-            parameters=[]
-        ),
         launch_testing.actions.ReadyToTest()
     ])
 
 
+
 class TestFixture(unittest.TestCase):
+    def spin(self):
+        try:
+            while rclpy.ok() and not self.spinning.is_set():
+                rclpy.spin_once(self.node, timeout_sec=0.1)
+        finally:
+            pass
+
     def start_helloric_ui_com(self):
         return
 
+    def setup_ros(self):
+        rclpy.init()
+        self.node = rclpy.create_node('test_node')
+
+        self.publisher_emo = self.node.create_publisher(
+            Int8, 'llm/speech/emotion', 10)
+        self.publisher_speak = self.node.create_publisher(
+            Bool, 'llm/speech/speaking', 10)
+
+        self.spinning = Event()
+        # Add a spin thread
+        self.ros_spin_thread = Thread(target=self.spin)
+        self.ros_spin_thread.start()
+
     def setUp(self):
+        self.setup_ros()
+
         # start server
         self.websocket_response = Event()
         self.helloric_ui_com = subprocess.Popen(
@@ -54,12 +75,14 @@ class TestFixture(unittest.TestCase):
     def tearDown(self):
         if self.helloric_ui_com:
             self.helloric_ui_com.kill()
+        self.spinning.set()
+        self.ros_spin_thread.join()
+        self.node.destroy_node()
+        rclpy.shutdown()
 
-    def on_message(self, msg):
-        print('msg:', msg)
-        self.websocket_response.set()
-        self.helloric_ui_com.kill()
-        self.helloric_ui_com = None
+
+    def receive_websocket(self):
+        return json.loads(self.ws.recv())
 
     def test_websocket_called(self):
         """the only test: make sure that the websocket has been executed."""
@@ -77,15 +100,19 @@ class TestFixture(unittest.TestCase):
                 connected = True
             except ConnectionRefusedError:
                 pass
-        msg_received = False
-        tries = 0
-        while not msg_received:
-            if tries > 15:
-                break
-            msg = json.loads(self.ws.recv())
-            print(msg)
-            if 'emotion' in msg and msg['emotion'] in [3, 5]:
-                msg_received = True
-            tries += 1
-        assert msg_received, 'No Webservice response'
+        # we did not send anything yet, the websocket message should be 0 first
+        ws_msg = self.receive_websocket()
+        assert 'emotion' in ws_msg
+        assert ws_msg['emotion'] == 0
+
+        # if we send 5 we should receive 5
+        msg = Int8()
+        msg.data = 5
+        self.publisher_emo.publish(msg)
+
+        ws_msg = self.receive_websocket()
+        assert 'emotion' in ws_msg
+        assert ws_msg['emotion'] == 5
+
+
 
