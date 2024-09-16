@@ -1,5 +1,5 @@
 import rclpy
-from std_msgs.msg import Bool, Int8
+from std_msgs.msg import Bool, Int8, String
 from rclpy.node import Node
 
 
@@ -18,6 +18,13 @@ class HelloRICUI(Node):
             Int8, 'llm/speech/emotion',
             self.callback,
             qos_profile = 0)
+        self.speech = self.create_subscription(
+            String, 'llm/speech/audio',
+            self.sendAudio,
+            qos_profile=0
+        )
+        self.audio = self.create_publisher(String, 'microphone', qos_profile=0)
+        self.validator = self.create_publisher(Bool, 'llm/speech/audio/poll', qos_profile=0)
 
     def changeSpeakingState(self, msg):
         self.get_logger().info(f'Speaking: {msg.data}')
@@ -26,6 +33,10 @@ class HelloRICUI(Node):
     def callback(self, msg):
         self.get_logger().info(f'New emotion: {msg.data}')
         self.mgr.emotion = msg.data
+    
+    def sendAudio(self, msg):
+        self.get_logger().info('New audio')
+        self.mgr.audio = msg.data
 
 def init_node(mgr, args = None):
     rclpy.init(args=args)

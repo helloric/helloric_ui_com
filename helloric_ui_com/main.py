@@ -1,3 +1,6 @@
+import base64
+from io import BytesIO
+import wave
 import rclpy
 import uuid
 import asyncio
@@ -5,6 +8,7 @@ from fastapi import FastAPI, WebSocket
 from .ros_com import init_node
 from uvicorn import Config, Server
 from starlette.websockets import WebSocketDisconnect
+from std_msgs.msg import String, Bool
 
 
 DEFAULT_EMOTION = 0
@@ -54,6 +58,9 @@ class HelloRICMgr(WebSocketConnectionManager):
         self.speaking = False
         self.last_speaking = self.speaking
 
+        self.audio = ''
+        self.last_audio = self.audio
+
         self.ros_node = None
         super().__init__()
 
@@ -72,6 +79,9 @@ class HelloRICMgr(WebSocketConnectionManager):
         if self.speaking != self.last_speaking:
             await self.broadcast_json({'speaking': self.speaking})
             self.last_speaking = self.speaking
+        if self.audio != self.last_audio:
+            await self.broadcast_json({'audio': self.audio})
+            self.last_audio = self.audio
 
     async def new_client(self, user_id):
         """a new user connected - send initial data."""
@@ -96,6 +106,20 @@ def init_websocket():
             await mgr.new_client(user_id)
             while True:
                 data = await websocket.receive_json()
+                if data.get('audio_data') is not None:
+                    decode = base64.b64decode(data['audio_data'])
+                    print(decode[0])
+                    virtual_file = BytesIO()
+                    out = wave.open(virtual_file, 'wb')
+                    out.setnchannels(1)
+                    out.setsampwidth(3)
+                    out.setframerate(44100)
+                    out.writeframes(decode)
+                    out.close()
+                    b64audio = base64.b64encode(virtual_file.getvalue()).decode('utf-8')
+                    node.audio.publish(String(data=b64audio))
+                elif data['update']:
+                    node.validator.publish(Bool(data=True))
                 # Future: data from the UI
         except WebSocketDisconnect as wsd:
             print('Websocket disconnected - Error:', wsd)
