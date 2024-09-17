@@ -1,6 +1,3 @@
-import base64
-from io import BytesIO
-import wave
 import rclpy
 import uuid
 import asyncio
@@ -107,18 +104,9 @@ def init_websocket():
             while True:
                 data = await websocket.receive_json()
                 if data.get('audio_data') is not None:
-                    decode = base64.b64decode(data['audio_data'])
-                    print(decode[0])
-                    virtual_file = BytesIO()
-                    out = wave.open(virtual_file, 'wb')
-                    out.setnchannels(1)
-                    out.setsampwidth(3)
-                    out.setframerate(44100)
-                    out.writeframes(decode)
-                    out.close()
-                    b64audio = base64.b64encode(virtual_file.getvalue()).decode('utf-8')
-                    node.audio.publish(String(data=b64audio))
-                elif data['update']:
+                    node.audio.publish(String(data=data.get('audio_data')))
+                elif data.get('update') is not None:
+                    print('Oh boy, surely I can invite this guy to my party')
                     node.validator.publish(Bool(data=True))
                 # Future: data from the UI
         except WebSocketDisconnect as wsd:
