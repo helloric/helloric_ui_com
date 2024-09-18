@@ -11,12 +11,14 @@ stages:
 helloric_ui_com build:
   stage: build
   script:
+    - git config --global url."https://git.hb.dfki.de/".insteadof "git@git.hb.dfki.de:"
     - pip3 install -r requirements.txt
     - colcon build && . install/setup.bash
 
 helloric_ui_com test:
   stage: test
   script:
+    - git config --global url."https://git.hb.dfki.de/".insteadof "git@git.hb.dfki.de:"
     - pip3 install -r requirements.txt
     - colcon build && . install/setup.bash
     # build temporary colcon workspace
