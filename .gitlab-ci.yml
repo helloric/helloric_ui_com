@@ -12,7 +12,7 @@ helloric_ui_com build:
   stage: build
   script:
     - pip3 install -r requirements.txt
-    - pip3 install .
+    - colcon build && . install/setup.bash
 
 helloric_ui_com test:
   stage: test
