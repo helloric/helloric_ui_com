@@ -19,7 +19,7 @@ setup(
     author="Andreas Bresser",
     description="HelloRIC UI FastAPI ROS 2 Communication server",
     long_description=long_description,
-    long_description_content_type="markdown"
+    long_description_content_type="markdown",
     license="BSD-3",
     tests_require=['pytest'],
     entry_points={
