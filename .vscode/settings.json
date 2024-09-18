@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./install/ric_messages/local/lib/python3.10/dist-packages",
+        "./install/mapdesc_msgs/local/lib/python3.10/dist-packages"
+    ]
+}

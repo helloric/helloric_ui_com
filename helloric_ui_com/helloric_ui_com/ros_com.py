@@ -1,5 +1,6 @@
 import rclpy
 from std_msgs.msg import Bool, Int8, String
+from ric_messages.msg import PlayAudio
 from rclpy.node import Node
 
 
@@ -10,21 +11,13 @@ class HelloRICUI(Node):
     def __init__(self, mgr):
         super().__init__('HelloRIC_ui_com')
         self.mgr = mgr
-        self.speak = self.create_subscription(
-            Bool, 'llm/speech/speaking',
-            self.changeSpeakingState,
-            qos_profile = 0)
-        self.sub = self.create_subscription(
-            Int8, 'llm/speech/emotion',
-            self.callback,
-            qos_profile = 0)
-        self.speech = self.create_subscription(
-            String, 'llm/speech/audio',
-            self.sendAudio,
-            qos_profile=0
-        )
+        self.audio_receiver = self.create_subscription(PlayAudio, 'websocket/play_audio', self.receiveQueue, 0)
         self.audio = self.create_publisher(String, 'microphone', qos_profile=0)
-        self.validator = self.create_publisher(Bool, 'llm/speech/audio/poll', qos_profile=0)
+
+    def receiveQueue(self, msg: PlayAudio):
+        self.mgr.new_queue = True
+        self.mgr.queue = [{'text': message.text, 'b64audio': message.b64audio, 'is_pause': message.is_pause, 'is_move': message.is_move_command, 'emotion': message.emotion} for message in msg.messages]
+        self.mgr.release_mic = msg.release_mic
 
     def changeSpeakingState(self, msg):
         self.get_logger().info(f'Speaking: {msg.data}')

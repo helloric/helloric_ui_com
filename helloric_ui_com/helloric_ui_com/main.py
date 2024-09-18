@@ -8,8 +8,6 @@ from starlette.websockets import WebSocketDisconnect
 from std_msgs.msg import String, Bool
 
 
-DEFAULT_EMOTION = 0
-
 
 class WebSocketConnectionManager:
     def __init__(self):
@@ -49,14 +47,10 @@ class HelloRICMgr(WebSocketConnectionManager):
         #       user management.
         #       but also receives data from the websocket and
         #       forwards it to ROS
-        self.emotion = DEFAULT_EMOTION
-        self.last_emotion = self.emotion
-
-        self.speaking = False
-        self.last_speaking = self.speaking
-
-        self.audio = ''
-        self.last_audio = self.audio
+        
+        self.new_queue = False
+        self.queue = []
+        self.release_mic = False
 
         self.ros_node = None
         super().__init__()
@@ -70,21 +64,16 @@ class HelloRICMgr(WebSocketConnectionManager):
             await asyncio.sleep(0.01)
 
     async def update_data(self):
-        if self.emotion != self.last_emotion:
-            await self.broadcast_json({'emotion': self.emotion})
-            self.last_emotion = self.emotion
-        if self.speaking != self.last_speaking:
-            await self.broadcast_json({'speaking': self.speaking})
-            self.last_speaking = self.speaking
-        if self.audio != self.last_audio:
-            await self.broadcast_json({'audio': self.audio})
-            self.last_audio = self.audio
+        if self.new_queue:
+            await self.broadcast_json({'messages': self.queue, 'release_mic': self.release_mic})
+            self.new_queue = False
+            self.queue = []
 
     async def new_client(self, user_id):
         """a new user connected - send initial data."""
         await self.send_json(user_id, {
-            'emotion': self.emotion,
-            'speaking': self.speaking
+            'emotion': 0,
+            'speaking': False
         })
 
 
@@ -105,9 +94,6 @@ def init_websocket():
                 data = await websocket.receive_json()
                 if data.get('audio_data') is not None:
                     node.audio.publish(String(data=data.get('audio_data')))
-                elif data.get('update') is not None:
-                    print('Oh boy, surely I can invite this guy to my party')
-                    node.validator.publish(Bool(data=True))
                 # Future: data from the UI
         except WebSocketDisconnect as wsd:
             print('Websocket disconnected - Error:', wsd)
