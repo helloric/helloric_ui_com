@@ -11,6 +11,7 @@ RUN pip3 install -r /tmp/requirements.txt
 COPY README.md ${APP}/README.md
 COPY run.bash ${APP}/run.bash
 COPY ./helloric_ui_com ${APP}/helloric_ui_com
+COPY ./ric-messages ${APP}/ric-messages
 WORKDIR ${APP}
 RUN chmod +x ./run.bash
 
