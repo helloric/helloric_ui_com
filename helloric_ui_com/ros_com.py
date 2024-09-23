@@ -1,6 +1,5 @@
 import rclpy
-import requests
-from std_msgs.msg import Int8, Bool
+from std_msgs.msg import Bool, Int8
 from rclpy.node import Node
 
 

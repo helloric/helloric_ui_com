@@ -2,8 +2,12 @@ import rclpy
 import uuid
 import asyncio
 from fastapi import FastAPI, WebSocket
-from ros_com import init_node
+from .ros_com import init_node
 from uvicorn import Config, Server
+from starlette.websockets import WebSocketDisconnect
+
+
+DEFAULT_EMOTION = 0
 
 
 class WebSocketConnectionManager:
@@ -11,7 +15,7 @@ class WebSocketConnectionManager:
         self.active_connections: list[WebSocket] = []
         # connections with names
         self.named_connections: dict = {}
-    
+
     def add(self, websocket: WebSocket, name: str = None):
         if not name:
             name = str(uuid.uuid4())
@@ -38,25 +42,36 @@ class WebSocketConnectionManager:
 
 class HelloRICMgr(WebSocketConnectionManager):
     def __init__(self):
-        self.emotion = -1
-        self.last_emotion = -1
+        # TODO: create a generic "message forwarding"
+        #       that gets data from any ros topic service and 
+        #       forwards it to the websocket, ideally with
+        #       user management.
+        #       but also receives data from the websocket and
+        #       forwards it to ROS
+        self.emotion = DEFAULT_EMOTION
+        self.last_emotion = self.emotion
+
         self.speaking = False
-        self.last_speaking = False
+        self.last_speaking = self.speaking
+
         self.ros_node = None
         super().__init__()
 
     async def main_loop(self):
-        while True:
+        while rclpy.ok():
             if self.ros_node:
                 rclpy.spin_once(self.ros_node, timeout_sec=0.1)
-            # TODO: forward data to Client if its new
-            if self.emotion != self.last_emotion:
-                await self.broadcast_json({'emotion': self.emotion})
-                self.last_emotion = self.emotion
-            if self.speaking != self.last_speaking:
-                await self.broadcast_json({'speaking': self.speaking})
-                self.last_speaking = self.speaking
+            # forward data to Client if its new
+            await self.update_data()
             await asyncio.sleep(0.01)
+
+    async def update_data(self):
+        if self.emotion != self.last_emotion:
+            await self.broadcast_json({'emotion': self.emotion})
+            self.last_emotion = self.emotion
+        if self.speaking != self.last_speaking:
+            await self.broadcast_json({'speaking': self.speaking})
+            self.last_speaking = self.speaking
 
     async def new_client(self, user_id):
         """a new user connected - send initial data."""
@@ -82,16 +97,16 @@ def init_websocket():
             while True:
                 data = await websocket.receive_json()
                 # Future: data from the UI
-        except Exception as e:
-            print('Error: %s', e)
+        except WebSocketDisconnect as wsd:
+            print('Websocket disconnected - Error:', wsd)
         finally:
             mgr.disconnect(user_id)
     return mgr, app
 
 
-def init_fastapi(logger, loop):
+def init_fastapi(logger, loop, host='0.0.0.0', port=7000):
     logger.info('⚡ Provide WebSocket interface using fastapi')
     mgr, app = init_websocket()
-    config = Config(app=app, loop=loop, host='0.0.0.0', port=7000)
+    config = Config(app=app, loop=loop, host=host, port=port)
     server = Server(config)
     return mgr, server, app

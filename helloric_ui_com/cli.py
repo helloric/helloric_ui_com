@@ -7,7 +7,7 @@ import argparse
 import asyncio
 import logging
 
-from main import init_fastapi
+from .main import init_fastapi
 
 
 LOG_LEVEL = {
@@ -29,6 +29,8 @@ def setup_argparse():
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-l', '--log_level', type=str, default='info')
+    parser.add_argument('--host', type=str, default='0.0.0.0')
+    parser.add_argument('--port', type=int, default=7000)
     return parser
 
 def setup():
@@ -46,7 +48,11 @@ async def async_main(server, mgr):
 
 def main():
     logger, loop, args = setup()
-    mgr, server, app = init_fastapi(logger, loop)
+    mgr, server, _ = init_fastapi(
+        logger=logger,
+        loop=loop,
+        host=args.host,
+        port=int(args.port))
     loop.run_until_complete(async_main(server, mgr))
     logger.info('exiting')
 

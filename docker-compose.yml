@@ -1,0 +1,10 @@
+services:
+  helloric_ui_com:
+    image: d-reg.hb.dfki.de/helloric/ui_com:x64_humble_001
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: humble
+    environment:
+      - PYTHONUNBUFFERED=1

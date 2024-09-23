@@ -1,0 +1,27 @@
+image: d-reg.hb.dfki.de:5000/robot-config/ros-pip-pytest:humble-0.0.1
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  # TODO: linting?
+  - build
+  - test
+
+helloric_ui_com build:
+  stage: build
+  script:
+    - pip3 install -r requirements.txt
+    - pip3 install .
+
+helloric_ui_com test:
+  stage: test
+  script:
+    - pip3 install -r requirements.txt
+    - pip3 install .
+    # build temporary colcon workspace
+    # Integration tests
+    - . /opt/ros/humble/setup.sh && launch_test /builds/helloric/helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
+  artifacts:
+    paths:
+      - build/
