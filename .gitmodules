@@ -1,4 +1,4 @@
 [submodule "ric-messages"]
 	path = ric-messages
-	url = git@git.hb.dfki.de:helloric/helloric-24/ric-messages.git
+	url = ../helloric-24/ric-messages.git
 	branch = feature/audio-playing
