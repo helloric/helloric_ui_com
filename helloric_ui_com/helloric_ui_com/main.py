@@ -1,42 +1,11 @@
 import rclpy
-import uuid
 import asyncio
 from fastapi import FastAPI, WebSocket
 from .ros_com import init_node
 from uvicorn import Config, Server
 from starlette.websockets import WebSocketDisconnect
 from std_msgs.msg import String, Bool
-
-
-
-class WebSocketConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
-        # connections with names
-        self.named_connections: dict = {}
-
-    def add(self, websocket: WebSocket, name: str = None):
-        if not name:
-            name = str(uuid.uuid4())
-        self.named_connections[name] = websocket
-        return name
-
-    def disconnect(self, name: str):
-        """Client (agent or user) disconnected."""
-        if name in self.named_connections:
-            del self.named_connections[name]
-
-    async def send_json(self, name: str, message: dict):
-        if name in self.named_connections:
-            await self.named_connections[name].send_json(message)
-        else:
-            print('Connection %s does not exist', name)
-
-    async def broadcast_json(self, message: dict):
-        """respond to all agents."""
-        for connection in self.named_connections.values():
-            await connection.send_json(message)
-
+from .utils import WebSocketConnectionManager
 
 
 class HelloRICMgr(WebSocketConnectionManager):
