@@ -1,9 +1,11 @@
 import uuid
+import logging
 from fastapi import WebSocket
 
 
 class WebSocketConnectionManager:
-    def __init__(self):
+    def __init__(self, logger=None):
+        self.logger = logger if logger else logging.getLogger(__name__)
         self.active_connections: list[WebSocket] = []
         # connections with names
         self.named_connections: dict = {}
@@ -34,7 +36,7 @@ class WebSocketConnectionManager:
         if name in self.named_connections:
             await self.named_connections[name].send_json(message)
         else:
-            print('Connection %s does not exist', name)
+            self.logger.error('😖 Connection %s does not exist', name)
 
     async def broadcast_json(self, message: dict):
         """respond to all agents."""
