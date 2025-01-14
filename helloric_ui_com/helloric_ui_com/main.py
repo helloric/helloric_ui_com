@@ -1,43 +1,11 @@
 import rclpy
-import uuid
 import asyncio
 from fastapi import FastAPI, WebSocket
 from .ros_com import init_node
 from uvicorn import Config, Server
 from starlette.websockets import WebSocketDisconnect
-
-
-DEFAULT_EMOTION = 0
-
-
-class WebSocketConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
-        # connections with names
-        self.named_connections: dict = {}
-
-    def add(self, websocket: WebSocket, name: str = None):
-        if not name:
-            name = str(uuid.uuid4())
-        self.named_connections[name] = websocket
-        return name
-
-    def disconnect(self, name: str):
-        """Client (agent or user) disconnected."""
-        if name in self.named_connections:
-            del self.named_connections[name]
-
-    async def send_json(self, name: str, message: dict):
-        if name in self.named_connections:
-            await self.named_connections[name].send_json(message)
-        else:
-            print('Connection %s does not exist', name)
-
-    async def broadcast_json(self, message: dict):
-        """respond to all agents."""
-        for connection in self.named_connections.values():
-            await connection.send_json(message)
-
+from std_msgs.msg import String, Bool
+from .utils import WebSocketConnectionManager
 
 
 class HelloRICMgr(WebSocketConnectionManager):
@@ -48,11 +16,10 @@ class HelloRICMgr(WebSocketConnectionManager):
         #       user management.
         #       but also receives data from the websocket and
         #       forwards it to ROS
-        self.emotion = DEFAULT_EMOTION
-        self.last_emotion = self.emotion
-
-        self.speaking = False
-        self.last_speaking = self.speaking
+        
+        self.new_queue = False
+        self.queue = []
+        self.release_mic = False
 
         self.ros_node = None
         super().__init__()
@@ -66,18 +33,16 @@ class HelloRICMgr(WebSocketConnectionManager):
             await asyncio.sleep(0.01)
 
     async def update_data(self):
-        if self.emotion != self.last_emotion:
-            await self.broadcast_json({'emotion': self.emotion})
-            self.last_emotion = self.emotion
-        if self.speaking != self.last_speaking:
-            await self.broadcast_json({'speaking': self.speaking})
-            self.last_speaking = self.speaking
+        if self.new_queue:
+            await self.broadcast_json({'messages': self.queue, 'release_mic': self.release_mic})
+            self.new_queue = False
+            self.queue = []
 
     async def new_client(self, user_id):
         """a new user connected - send initial data."""
         await self.send_json(user_id, {
-            'emotion': self.emotion,
-            'speaking': self.speaking
+            'emotion': 0,
+            'speaking': False
         })
 
 
@@ -96,6 +61,8 @@ def init_websocket():
             await mgr.new_client(user_id)
             while True:
                 data = await websocket.receive_json()
+                if data.get('audio_data') is not None:
+                    node.audio.publish(String(data=data.get('audio_data')))
                 # Future: data from the UI
         except WebSocketDisconnect as wsd:
             print('Websocket disconnected - Error:', wsd)
