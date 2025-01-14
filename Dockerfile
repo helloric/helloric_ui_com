@@ -8,11 +8,18 @@ ENV APP=/app/helloric_ui_com
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
-COPY README.md ${APP}/README.md
-COPY run.bash ${APP}/run.bash
-COPY ./helloric_ui_com ${APP}/helloric_ui_com
-COPY ./ric-messages ${APP}/ric-messages
 WORKDIR ${APP}
-RUN chmod +x ./run.bash
+COPY ./ric-messages ${APP}/ric-messages
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    colcon build
 
-ENTRYPOINT ["./run.bash"]
+COPY entrypoint.bash /entrypoint.bash
+RUN chmod +x /entrypoint.bash
+
+COPY README.md ${APP}/README.md
+COPY ./helloric_ui_com ${APP}/helloric_ui_com
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    colcon build
+
+ENTRYPOINT ["/entrypoint.bash"]
+CMD ["ros2", "run", "helloric_ui_com", "helloric_ui_com"]

@@ -61,7 +61,9 @@ def init_websocket():
             await mgr.new_client(user_id)
             while True:
                 data = await websocket.receive_json()
+                print('received new message')
                 if data.get('audio_data') is not None:
+                    print('received audio data')
                     node.audio.publish(String(data=data.get('audio_data')))
                 # Future: data from the UI
         except WebSocketDisconnect as wsd:
