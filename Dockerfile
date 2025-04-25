@@ -1,5 +1,17 @@
 ARG ROS_DISTRO
-FROM d-reg.hb.dfki.de/robot-config/ros-pip-pytest:${ROS_DISTRO}-0.0.1
+FROM ros:${ROS_DISTRO}
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+    python3-pip \
+    ros-${ROS_DISTRO}-std-msgs \
+    ros-${ROS_DISTRO}-geometry-msgs \
+    ros-${ROS_DISTRO}-diagnostic-msgs \
+    ament-cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# install flake and pytest-cov for testing
+RUN pip3 install --upgrade flake8 pytest-cov
 
 EXPOSE 7000
 
