@@ -11,17 +11,19 @@ stages:
 helloric_ui_com build:
   stage: build
   script:
+    - git config --global url."https://git.hb.dfki.de/".insteadof "git@git.hb.dfki.de:"
     - pip3 install -r requirements.txt
-    - pip3 install .
+    - colcon build && . install/setup.bash
 
 helloric_ui_com test:
   stage: test
   script:
+    - git config --global url."https://git.hb.dfki.de/".insteadof "git@git.hb.dfki.de:"
     - pip3 install -r requirements.txt
-    - pip3 install .
+    - colcon build && . install/setup.bash
     # build temporary colcon workspace
     # Integration tests
-    - . /opt/ros/humble/setup.sh && launch_test /builds/helloric/helloric_ui_com/integration_tests/launch_testing/com_launch_test.py
+    - . /opt/ros/humble/setup.sh && launch_test helloric_ui_com/test/com_launch_test.py
   artifacts:
     paths:
       - build/

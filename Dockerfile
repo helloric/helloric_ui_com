@@ -1,5 +1,17 @@
 ARG ROS_DISTRO
-FROM d-reg.hb.dfki.de/robot-config/ros-pip-pytest:${ROS_DISTRO}-0.0.1
+FROM ros:${ROS_DISTRO}
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+    python3-pip \
+    ros-${ROS_DISTRO}-std-msgs \
+    ros-${ROS_DISTRO}-geometry-msgs \
+    ros-${ROS_DISTRO}-diagnostic-msgs \
+    ament-cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# install flake and pytest-cov for testing
+RUN pip3 install --upgrade flake8 pytest-cov
 
 EXPOSE 7000
 
@@ -8,15 +20,18 @@ ENV APP=/app/helloric_ui_com
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
-COPY setup.cfg ${APP}/setup.cfg
-COPY setup.py ${APP}/setup.py
+WORKDIR ${APP}
+COPY ./ric-messages ${APP}/ric-messages
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    colcon build
+
+COPY entrypoint.bash /entrypoint.bash
+RUN chmod +x /entrypoint.bash
+
 COPY README.md ${APP}/README.md
 COPY ./helloric_ui_com ${APP}/helloric_ui_com
-WORKDIR ${APP}
-RUN pip3 install .
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    colcon build
 
-COPY ./integration_tests /integration_tests
-
-WORKDIR ${APP}
-
-CMD ["helloric_ui_com"]
+ENTRYPOINT ["/entrypoint.bash"]
+CMD ["ros2", "run", "helloric_ui_com", "helloric_ui_com"]
