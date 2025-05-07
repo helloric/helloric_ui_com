@@ -1,22 +1,27 @@
-import rclpy
 import asyncio
+
+# Websocket imports
 from fastapi import FastAPI, WebSocket
-from .ros_com import init_node
-from uvicorn import Config, Server
 from starlette.websockets import WebSocketDisconnect
-from std_msgs.msg import String, Bool
+from uvicorn import Config, Server
+
+# ROS imports
+import rclpy
+from std_msgs.msg import String
+
+from .ros_com import init_node
 from .utils import WebSocketConnectionManager
 
 
 class HelloRICMgr(WebSocketConnectionManager):
     def __init__(self):
         # TODO: create a generic "message forwarding"
-        #       that gets data from any ros topic service and 
+        #       that gets data from any ros topic service and
         #       forwards it to the websocket, ideally with
         #       user management.
         #       but also receives data from the websocket and
         #       forwards it to ROS
-        
+
         self.new_queue = False
         self.queue = []
         self.release_mic = False
@@ -34,7 +39,9 @@ class HelloRICMgr(WebSocketConnectionManager):
 
     async def update_data(self):
         if self.new_queue:
-            await self.broadcast_json({'messages': self.queue, 'release_mic': self.release_mic})
+            await self.broadcast_json({
+                'messages': self.queue,
+                'release_mic': self.release_mic})
             self.new_queue = False
             self.queue = []
 
@@ -57,7 +64,7 @@ def init_websocket():
         await websocket.accept()
         user_id = mgr.add(websocket)
         try:
-            # broadcast states from the 
+            # send initial emotion and speaking state to UI
             await mgr.new_client(user_id)
             while True:
                 data = await websocket.receive_json()
