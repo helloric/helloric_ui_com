@@ -7,18 +7,19 @@ RUN apt-get update -qq \
     ros-${ROS_DISTRO}-std-msgs \
     ros-${ROS_DISTRO}-geometry-msgs \
     ros-${ROS_DISTRO}-diagnostic-msgs \
-    ament-cmake \
+    ros-${ROS_DISTRO}-ament-cmake \
     && rm -rf /var/lib/apt/lists/*
 
 # install flake and pytest-cov for testing
-RUN pip3 install --upgrade flake8 pytest-cov
+# We are inside a docker container so its okay to "break-system-packages".
+RUN pip3 install --upgrade flake8 pytest-cov --break-system-packages
 
 EXPOSE 7000
 
 ENV APP=/app/helloric_ui_com
 
 COPY ./requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt --break-system-packages
 
 WORKDIR ${APP}
 COPY ./ric-messages ${APP}/ric-messages
