@@ -7,6 +7,8 @@ RUN apt-get update -qq \
     ros-${ROS_DISTRO}-std-msgs \
     ros-${ROS_DISTRO}-geometry-msgs \
     ros-${ROS_DISTRO}-diagnostic-msgs \
+    ros-${ROS_DISTRO}-ament-cmake \
+    ros-${ROS_DISTRO}-rmw-zenoh-cpp \
     python3-flake8 \
     python3-pytest-cov \
     && rm -rf /var/lib/apt/lists/*
@@ -31,6 +33,8 @@ COPY README.md ${APP}/README.md
 COPY ./helloric_ui_com ${APP}/helloric_ui_com
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build
+
+ENV RMW_IMPLEMENTATION=rmw_zenoh_cpp
 
 ENTRYPOINT ["/entrypoint.bash"]
 CMD ["ros2", "run", "helloric_ui_com", "helloric_ui_com"]
