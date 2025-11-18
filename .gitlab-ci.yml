@@ -1,4 +1,4 @@
-image: d-reg.hb.dfki.de:5000/robot-config/ros-pip-pytest:humble-0.0.1
+image: d-reg.hb.dfki.de:5000/robot-config/ros-pip-pytest:jazzy-0.0.1
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -23,7 +23,7 @@ helloric_ui_com test:
     - colcon build && . install/setup.bash
     # build temporary colcon workspace
     # Integration tests
-    - . /opt/ros/humble/setup.sh && launch_test helloric_ui_com/test/com_launch_test.py
+    - . /opt/ros/jazzy/setup.sh && launch_test helloric_ui_com/test/com_launch_test.py
   artifacts:
     paths:
       - build/
