@@ -44,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/helloric/${{env.IMAGE_NAME}}
+          images: ${{ env.REGISTRY }}/${{env.IMAGE_NAME}}
           tags: |
             type=raw,value=${{ github.sha }}
             type=raw,value=latest
@@ -52,7 +52,7 @@ jobs:
             labels: |
                 org.opencontainers.image.title=HelloRic UI Communication Node
                 org.opencontainers.image.description=Docker image for HelloRic UI Communication Node
-                org.opencontainers.image.url=https://github.com/helloric/${{env.IMAGE_NAME}}
+                org.opencontainers.image.url=https://github.com/${{env.IMAGE_NAME}}
                 org.opencontainers.image.vendor=DFKI RIC
                 org.opencontainers.image.licenses=3-Clause BSD License
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
@@ -73,7 +73,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
-          subject-name: ${{ env.REGISTRY }}/helloric/${{env.IMAGE_NAME}}
+          subject-name: ${{ env.REGISTRY }}/${{env.IMAGE_NAME}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
       
