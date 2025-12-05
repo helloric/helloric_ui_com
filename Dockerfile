@@ -1,4 +1,4 @@
-ARG ROS_DISTRO
+ARG ROS_DISTRO=jazzy
 FROM ros:${ROS_DISTRO}
 
 RUN apt-get update -qq \
@@ -7,11 +7,13 @@ RUN apt-get update -qq \
     ros-${ROS_DISTRO}-std-msgs \
     ros-${ROS_DISTRO}-geometry-msgs \
     ros-${ROS_DISTRO}-diagnostic-msgs \
-    ament-cmake \
+    # ament-cmake \
     && rm -rf /var/lib/apt/lists/*
 
+# PEP 668: https://docs.ros.org/en/independent/api/rosdep/html/pip_and_pep_668.html
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 # install flake and pytest-cov for testing
-RUN pip3 install --upgrade flake8 pytest-cov
+RUN pip3 install --upgrade flake8 pytest-cov --user
 
 EXPOSE 7000
 
