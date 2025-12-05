@@ -1,4 +1,4 @@
-ARG ROS_DISTRO
+ARG ROS_DISTRO=jazzy
 FROM ros:${ROS_DISTRO}
 
 RUN apt-get update -qq \
@@ -12,6 +12,9 @@ RUN apt-get update -qq \
     python3-flake8 \
     python3-pytest-cov \
     && rm -rf /var/lib/apt/lists/*
+
+# PEP 668: https://docs.ros.org/en/independent/api/rosdep/html/pip_and_pep_668.html
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 EXPOSE 7000
 
